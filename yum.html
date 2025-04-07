@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>电子木鱼</title>
+    <meta name="theme-color" content="#e6f2ff">
+    <link rel="manifest" href="manifest.json">
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: #e6f2ff;
+            margin: 0;
+            font-family: 'Microsoft YaHei', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        #muyu {
+            font-size: 25vw;
+            cursor: pointer;
+            user-select: none;
+            transition: transform 0.1s;
+            margin-bottom: 5vh;
+        }
+        #count {
+            font-size: 6vw;
+            color: #333;
+        }
+        #count span {
+            color: #d32f2f;
+            font-weight: bold;
+        }
+        .install-btn {
+            position: fixed;
+            bottom: 20px;
+            padding: 10px 20px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-size: 16px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="muyu">🐟</div>
+    <div id="count">功德：<span>0</span></div>
+    <button id="installBtn" class="install-btn">安装应用</button>
+
+    <script>
+        // 功德计数器
+        let count = 0;
+        const muyu = document.getElementById('muyu');
+        
+        // 点击效果
+        muyu.onclick = () => {
+            // 动画效果
+            muyu.style.transform = 'scale(0.9)';
+            setTimeout(() => muyu.style.transform = 'scale(1)', 100);
+            
+            // 计数
+            document.querySelector('#count span').textContent = ++count;
+            
+            // 播放音效
+            new Audio('sounds/muyu.mp3').play().catch(e => console.log(e));
+        };
+
+        // PWA安装提示
+        let deferredPrompt;
+        const installBtn = document.getElementById('installBtn');
+        
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            installBtn.style.display = 'block';
+        });
+
+        installBtn.addEventListener('click', () => {
+            installBtn.style.display = 'none';
+            deferredPrompt.prompt();
+            deferredPrompt.userChoice.then((choiceResult) => {
+                if (choiceResult.outcome === 'accepted') {
+                    console.log('用户同意安装');
+                }
+                deferredPrompt = null;
+            });
+        });
+
+        // 注册Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(registration => console.log('SW注册成功'))
+                    .catch(err => console.log('SW注册失败: ', err));
+            });
+        }
+    </script>
+</body>
+</html>
